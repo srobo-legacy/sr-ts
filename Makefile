@@ -1,7 +1,7 @@
 CFLAGS := -Wall -g -O3
 LDFLAGS :=
 
-PKGS := libwnck-1.0 gtk+-2.0 gmodule-2.0
+PKGS := libwnck-1.0 gtk+-2.0 gmodule-2.0 x11
 
 CFLAGS += `pkg-config --cflags $(PKGS)`
 LDFLAGS += `pkg-config --libs $(PKGS)`

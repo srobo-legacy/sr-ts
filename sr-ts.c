@@ -12,10 +12,15 @@
 
    You should have received a copy of the GNU General Public License
    along with sr-ts.  If not, see <http://www.gnu.org/licenses/>. */
+#include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 #define WNCK_I_KNOW_THIS_IS_UNSTABLE
 #include <libwnck/libwnck.h>
 #include <stdint.h>
+#include <X11/keysym.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 enum {
 	WINDOW_LIST_NAME_COLUMN,
@@ -105,14 +110,74 @@ static void init_wnck( ts_t *ts )
 			  G_CALLBACK( cb_wnck_window_closed ), ts );
 }
 
+/* Handler for the X events */
+static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
+					 GdkEvent *event,
+					 gpointer _ts )
+{
+	/* ts_t *ts = _ts; */
+	XEvent *xevent = (XEvent*)_xevent;
+	GdkDisplay *display = gdk_display_get_default();
+	Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
+	static gboolean alt_down = FALSE;
+
+	if( xevent->type == KeyPress || xevent->type == KeyRelease ) {
+		XKeyEvent* xkey = &(xevent->xkey);
+		KeySym sym;
+
+		/* TODO: Perhaps this should look belong index 0 */
+		sym = XKeycodeToKeysym( xdisplay, xkey->keycode, 0 );
+
+		if( sym == XK_Alt_L )
+			alt_down = (xevent->type == KeyPress);
+		else if( sym == XK_Tab && xevent->type == KeyRelease && alt_down ) {
+
+			/* Raise the switcher */
+			g_debug( "RAISE" );
+		}
+	}
+
+	return GDK_FILTER_CONTINUE;
+}
+
+static void register_alt_tab( ts_t *ts )
+{
+	GdkWindow *root;
+	Window xroot;
+	GdkDisplay *display = gdk_display_get_default();
+	Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
+	g_assert( display != NULL );
+
+	root = gdk_get_default_root_window();
+	xroot = GDK_WINDOW_XWINDOW(root);
+	gdk_window_add_filter( root, cb_window_filter, ts );
+
+	/* Grab Alt */
+	XGrabKey( xdisplay,
+		  XKeysymToKeycode(xdisplay, XK_Alt_L),
+		  0,
+		  xroot,
+		  False,
+		  GrabModeAsync,
+		  GrabModeAsync );
+
+	/* Grab Tab */
+	XGrabKey( xdisplay,
+		  XKeysymToKeycode(xdisplay, XK_Tab),
+		  0,
+		  xroot,
+		  False,
+		  GrabModeAsync,
+		  GrabModeAsync );
+}
+
 int main( int argc, char **argv )
 {
 	ts_t ts;
 	gtk_init( &argc, &argv );
 	build_interface(&ts);
 	init_wnck(&ts);
-
-
+	register_alt_tab(&ts);
 
 	gtk_main();
 	return 0;
@@ -143,6 +208,8 @@ static gboolean find_list_entry( ts_t *ts, WnckWindow *window, GtkTreeIter *i )
 
 static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 {
+	/* ts_t *ts = _ts; */
+
 	g_warning( "window list selection changed, but nothing done..." );
 }
 
