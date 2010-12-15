@@ -6,9 +6,19 @@
     <property name="title" translatable="yes">SR Task-Switcher</property>
     <signal name="destroy" handler="gtk_main_quit"/>
     <child>
-      <object class="GtkTreeView" id="treeview_windows">
+      <object class="GtkScrolledWindow" id="scrolledwindow1">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
+        <property name="hscrollbar_policy">automatic</property>
+        <property name="vscrollbar_policy">automatic</property>
+        <child>
+          <object class="GtkTreeView" id="treeview_windows">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="headers_visible">False</property>
+            <property name="headers_clickable">False</property>
+          </object>
+        </child>
       </object>
     </child>
   </object>
