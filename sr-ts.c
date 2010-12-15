@@ -118,6 +118,29 @@ int main( int argc, char **argv )
 	return 0;
 }
 
+/* Find the list entry that maps to the given window.
+   Returns FALSE if not found. */
+static gboolean find_list_entry( ts_t *ts, WnckWindow *window, GtkTreeIter *i )
+{
+	window_list_t *wl = &ts->winlist;
+	g_assert( i != NULL );
+
+	if( !gtk_tree_model_get_iter_first( GTK_TREE_MODEL( wl->store ), i ) )
+		return FALSE;
+
+	do {
+		WnckWindow *cmpwin;
+		gtk_tree_model_get( GTK_TREE_MODEL(wl->store), i,
+				    WINDOW_LIST_WNCK_WINDOW, &cmpwin, -1 );
+
+		if( window == cmpwin )
+			return TRUE;
+	}
+	while( gtk_tree_model_iter_next( GTK_TREE_MODEL(wl->store), i ) );
+
+	return FALSE;
+}
+
 static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 {
 	g_warning( "window list selection changed, but nothing done..." );
@@ -126,8 +149,16 @@ static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 static void cb_window_name_changed( WnckWindow *window, gpointer _ts )
 {
 	ts_t *ts = _ts;
+	const gchar *name = wnck_window_get_name(window);
+	GtkTreeIter i;
 
-	g_warning( "window name changed. nothing done!" );
+	if( !find_list_entry( ts, window, &i ) ) {
+		g_warning( "Couldn't find window in list store" );
+		return;
+	}
+
+	gtk_list_store_set( ts->winlist.store, &i,
+			    WINDOW_LIST_NAME_COLUMN, name, -1 );
 }
 
 static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
