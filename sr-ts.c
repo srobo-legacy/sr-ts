@@ -32,9 +32,19 @@ typedef struct {
 	window_list_t winlist;
 
 	GtkWindow *mainwin;
+
+	WnckScreen *screen;
 } ts_t;
 
 static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts );
+
+/* Called when a window is opened (and for all windows on startup) */
+static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
+				   gpointer _ts );
+
+/* Called when a window is closed */
+static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
+				   gpointer _ts );
 
 static void build_treeview( ts_t *ts, GtkBuilder *builder )
 {
@@ -81,11 +91,24 @@ static void build_interface( ts_t *ts )
 }
 #undef get
 
+static void init_wnck( ts_t *ts )
+{
+	ts->screen = wnck_screen_get(0);
+	g_assert( ts->screen != NULL );
+
+	g_signal_connect( G_OBJECT(ts->screen), "window-opened",
+			  G_CALLBACK( cb_wnck_window_opened ), ts );
+
+	g_signal_connect( G_OBJECT(ts->screen), "window-closed",
+			  G_CALLBACK( cb_wnck_window_closed ), ts );
+}
+
 int main( int argc, char **argv )
 {
 	ts_t ts;
 	gtk_init( &argc, &argv );
 	build_interface(&ts);
+	init_wnck(&ts);
 
 
 
@@ -96,4 +119,16 @@ int main( int argc, char **argv )
 static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 {
 	g_warning( "window list selection changed, but nothing done..." );
+}
+
+static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
+				   gpointer _ts )
+{
+	g_warning( "window opened.  nothing done" );
+}
+
+static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
+				   gpointer _ts )
+{
+	g_warning( "window closed. nothing done!" );
 }
