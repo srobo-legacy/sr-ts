@@ -1,0 +1,99 @@
+/* Copyright 2010 Robert Spanton
+   This file is part of sr-ts.
+   sr-ts is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   sr-ts is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with sr-ts.  If not, see <http://www.gnu.org/licenses/>. */
+#include <gtk/gtk.h>
+#define WNCK_I_KNOW_THIS_IS_UNSTABLE
+#include <libwnck/libwnck.h>
+#include <stdint.h>
+
+enum {
+	WINDOW_LIST_NAME_COLUMN,
+	WINDOW_LIST_N_COLUMNS,
+};
+
+typedef struct {
+	GtkTreeView *treeview;
+	GtkListStore *store;
+	GtkTreeSelection *sel;
+} window_list_t;
+
+typedef struct {
+	window_list_t winlist;
+
+	GtkWindow *mainwin;
+} ts_t;
+
+static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts );
+
+static void build_treeview( ts_t *ts, GtkBuilder *builder )
+{
+	window_list_t *wl = &ts->winlist;
+	GtkCellRenderer *rend;
+	GtkTreeViewColumn *col;
+
+	wl->treeview = GTK_TREE_VIEW( gtk_builder_get_object( builder, "treeview_windows" ) );
+	wl->store = gtk_list_store_new( WINDOW_LIST_N_COLUMNS,
+					G_TYPE_STRING );
+	gtk_tree_view_set_model( wl->treeview,
+				 GTK_TREE_MODEL( wl->store ) );
+
+	/* Sort out the rendering */
+	rend = gtk_cell_renderer_text_new();
+	col = gtk_tree_view_column_new_with_attributes( "Window", rend,
+							"text", WINDOW_LIST_NAME_COLUMN,
+							NULL );
+	gtk_tree_view_append_column( wl->treeview, col );
+
+	wl->sel = gtk_tree_view_get_selection( wl->treeview );
+	gtk_tree_selection_set_mode( wl->sel, GTK_SELECTION_SINGLE );
+	g_signal_connect( G_OBJECT(wl->sel), "changed",
+			  G_CALLBACK( cb_winlist_sel_changed ), ts );
+}
+
+#define get(t, n) do {				\
+	ts-> n = t(gtk_builder_get_object( builder, #n ));	\
+	g_assert( ts-> n != NULL );				\
+	} while (0)
+static void build_interface( ts_t *ts )
+{
+	GtkBuilder *builder;
+	builder = gtk_builder_new();
+	g_assert( gtk_builder_add_from_file( builder, "sr-ts.glade", NULL ) );
+	build_treeview( ts, builder );
+
+	get( GTK_WINDOW, mainwin );
+
+	gtk_builder_connect_signals( builder, ts );
+	g_object_unref(builder);
+
+	gtk_widget_show( GTK_WIDGET(ts->mainwin) );
+}
+#undef get
+
+int main( int argc, char **argv )
+{
+	ts_t ts;
+	gtk_init( &argc, &argv );
+	build_interface(&ts);
+
+
+
+	gtk_main();
+	return 0;
+}
+
+static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
+{
+	g_warning( "window list selection changed, but nothing done..." );
+}
