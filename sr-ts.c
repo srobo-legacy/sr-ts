@@ -19,6 +19,7 @@
 
 enum {
 	WINDOW_LIST_NAME_COLUMN,
+	WINDOW_LIST_WNCK_WINDOW,
 	WINDOW_LIST_N_COLUMNS,
 };
 
@@ -54,7 +55,8 @@ static void build_treeview( ts_t *ts, GtkBuilder *builder )
 
 	wl->treeview = GTK_TREE_VIEW( gtk_builder_get_object( builder, "treeview_windows" ) );
 	wl->store = gtk_list_store_new( WINDOW_LIST_N_COLUMNS,
-					G_TYPE_STRING );
+					G_TYPE_STRING,
+					G_TYPE_POINTER );
 	gtk_tree_view_set_model( wl->treeview,
 				 GTK_TREE_MODEL( wl->store ) );
 
@@ -124,7 +126,16 @@ static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 				   gpointer _ts )
 {
-	g_warning( "window opened.  nothing done" );
+	ts_t *ts = _ts;
+	const gchar *name = wnck_window_get_name(window);
+	GtkTreeIter i;
+
+	/* Add the window to the store */
+	gtk_list_store_append( ts->winlist.store, &i );
+	gtk_list_store_set( ts->winlist.store, &i,
+			    WINDOW_LIST_NAME_COLUMN, name,
+			    WINDOW_LIST_WNCK_WINDOW, window,
+			    -1 );
 }
 
 static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
