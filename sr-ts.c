@@ -115,7 +115,7 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 					 GdkEvent *event,
 					 gpointer _ts )
 {
-	/* ts_t *ts = _ts; */
+	ts_t *ts = _ts;
 	XEvent *xevent = (XEvent*)_xevent;
 	GdkDisplay *display = gdk_display_get_default();
 	Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
@@ -131,9 +131,15 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 		if( sym == XK_Alt_L )
 			alt_down = (xevent->type == KeyPress);
 		else if( sym == XK_Tab && xevent->type == KeyRelease && alt_down ) {
+			GdkWindow* gdw = gtk_widget_get_window( GTK_WIDGET(ts->mainwin) );
+			WnckWindow *win;
+
+			win = wnck_window_get( GDK_WINDOW_XID(gdw) );
+			if( win == NULL )
+				g_error( "Hmm.  We appear to have no window." );
 
 			/* Raise the switcher */
-			g_debug( "RAISE" );
+			wnck_window_activate(win, 0);
 		}
 	}
 
