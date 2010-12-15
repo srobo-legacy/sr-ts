@@ -184,3 +184,22 @@ static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
 {
 	g_warning( "window closed. nothing done!" );
 }
+
+G_MODULE_EXPORT void cb_winlist_row_activated( GtkTreeView *treeview,
+					       GtkTreePath *path,
+					       GtkTreeViewColumn *col,
+					       gpointer _ts )
+{
+	ts_t *ts = _ts;
+	window_list_t *wl = &ts->winlist;
+	GtkTreeIter i;
+	WnckWindow *win;
+
+	g_assert( gtk_tree_model_get_iter( GTK_TREE_MODEL(wl->store), &i, path ) );
+
+	gtk_tree_model_get( GTK_TREE_MODEL(wl->store), &i,
+			    WINDOW_LIST_WNCK_WINDOW, &win, -1 );
+
+	/* TODO: Send a sane time through */
+	wnck_window_activate(win, 0);
+}

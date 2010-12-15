@@ -17,6 +17,7 @@
             <property name="can_focus">True</property>
             <property name="headers_visible">False</property>
             <property name="headers_clickable">False</property>
+            <signal name="row_activated" handler="cb_winlist_row_activated"/>
           </object>
         </child>
       </object>
