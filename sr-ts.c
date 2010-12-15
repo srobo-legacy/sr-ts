@@ -123,6 +123,13 @@ static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 	g_warning( "window list selection changed, but nothing done..." );
 }
 
+static void cb_window_name_changed( WnckWindow *window, gpointer _ts )
+{
+	ts_t *ts = _ts;
+
+	g_warning( "window name changed. nothing done!" );
+}
+
 static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 				   gpointer _ts )
 {
@@ -136,6 +143,9 @@ static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 			    WINDOW_LIST_NAME_COLUMN, name,
 			    WINDOW_LIST_WNCK_WINDOW, window,
 			    -1 );
+
+	g_signal_connect( G_OBJECT(window), "name-changed",
+			  G_CALLBACK( cb_window_name_changed ), ts );
 }
 
 static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
