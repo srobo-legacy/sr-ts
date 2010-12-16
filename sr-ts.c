@@ -261,7 +261,11 @@ static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
 	ts_t *ts = _ts;
 	GtkTreeIter i;
 
-	g_assert( find_list_entry( ts, window, &i ) );
+	if( ! find_list_entry( ts, window, &i ) ) {
+		g_warning( "Entry for closed window not found" );
+		return;
+	}
+
 	gtk_list_store_remove( ts->winlist.store, &i );
 }
 
