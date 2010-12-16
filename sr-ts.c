@@ -242,7 +242,13 @@ static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 {
 	ts_t *ts = _ts;
 	const gchar *name = wnck_window_get_name(window);
+	WnckWindow *us;
 	GtkTreeIter i;
+
+	us = get_widget_wnck_win( GTK_WIDGET(ts->mainwin) );
+	if( window == us )
+		/* Don't add ourselves to the list */
+		return;
 
 	/* Add the window to the store */
 	gtk_list_store_append( ts->winlist.store, &i );
