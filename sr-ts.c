@@ -255,7 +255,11 @@ static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
 				   gpointer _ts )
 {
-	g_warning( "window closed. nothing done!" );
+	ts_t *ts = _ts;
+	GtkTreeIter i;
+
+	g_assert( find_list_entry( ts, window, &i ) );
+	gtk_list_store_remove( ts->winlist.store, &i );
 }
 
 G_MODULE_EXPORT void cb_winlist_row_activated( GtkTreeView *treeview,
