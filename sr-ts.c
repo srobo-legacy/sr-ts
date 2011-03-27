@@ -123,7 +123,6 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 	XEvent *xevent = (XEvent*)_xevent;
 	GdkDisplay *display = gdk_display_get_default();
 	Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
-	static gboolean alt_down = FALSE;
 
 	if( xevent->type == KeyPress || xevent->type == KeyRelease ) {
 		XKeyEvent* xkey = &(xevent->xkey);
@@ -132,9 +131,7 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 		/* TODO: Perhaps this should look belong index 0 */
 		sym = XKeycodeToKeysym( xdisplay, xkey->keycode, 0 );
 
-		if( sym == XK_Alt_L )
-			alt_down = (xevent->type == KeyPress);
-		else if( sym == XK_Tab && xevent->type == KeyRelease && alt_down ) {
+		if( sym == XK_Tab && xevent->type == KeyRelease ) {
 			WnckWindow *win;
 
 			win = get_widget_wnck_win( GTK_WIDGET(ts->mainwin) );
