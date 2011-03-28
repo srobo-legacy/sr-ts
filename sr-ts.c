@@ -40,6 +40,8 @@ typedef struct {
 	GtkWindow *mainwin;
 
 	WnckScreen *screen;
+
+	WnckWindow *selected;
 } ts_t;
 
 static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts );
@@ -138,8 +140,13 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 			if( win == NULL )
 				g_error( "Hmm.  We appear to have no window." );
 
-			/* Raise the switcher */
-			wnck_window_activate(win, 0);
+			if( wnck_window_is_active(win) ) {
+				/* Switch to the selected window */
+				if( ts->selected != NULL )
+					wnck_window_activate(ts->selected, 0);
+			} else
+				/* Raise the switcher */
+				wnck_window_activate(win, 0);
 		}
 	}
 
@@ -171,6 +178,8 @@ static void register_alt_tab( ts_t *ts )
 int main( int argc, char **argv )
 {
 	ts_t ts;
+	ts.selected = NULL;
+
 	gtk_init( &argc, &argv );
 	build_interface(&ts);
 	init_wnck(&ts);
@@ -205,9 +214,19 @@ static gboolean find_list_entry( ts_t *ts, WnckWindow *window, GtkTreeIter *i )
 
 static void cb_winlist_sel_changed( GtkTreeSelection *treesel, gpointer _ts )
 {
-	/* ts_t *ts = _ts; */
+	ts_t *ts = _ts;
+	GtkTreeIter iter;
+	WnckWindow *win;
 
-	g_warning( "window list selection changed, but nothing done..." );
+	if( !gtk_tree_selection_get_selected( treesel, NULL, &iter ) ) {
+		/* Nothing selected */
+		ts->selected = NULL;
+		return;
+	}
+
+	gtk_tree_model_get( GTK_TREE_MODEL(ts->winlist.store), &iter,
+			    WINDOW_LIST_WNCK_WINDOW, &win, -1 );
+	ts->selected = win;
 }
 
 static void cb_window_name_changed( WnckWindow *window, gpointer _ts )
