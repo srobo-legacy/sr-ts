@@ -158,15 +158,6 @@ static void register_alt_tab( ts_t *ts )
 	xroot = GDK_WINDOW_XWINDOW(root);
 	gdk_window_add_filter( root, cb_window_filter, ts );
 
-	/* Grab Alt */
-	XGrabKey( xdisplay,
-		  XKeysymToKeycode(xdisplay, XK_Alt_L),
-		  0,
-		  xroot,
-		  False,
-		  GrabModeAsync,
-		  GrabModeAsync );
-
 	/* Grab Tab */
 	XGrabKey( xdisplay,
 		  XKeysymToKeycode(xdisplay, XK_Tab),
