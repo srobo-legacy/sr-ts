@@ -17,6 +17,7 @@
 #define WNCK_I_KNOW_THIS_IS_UNSTABLE
 #include <libwnck/libwnck.h>
 #include <stdint.h>
+#include <string.h>
 #include <X11/keysym.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -250,11 +251,10 @@ static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 {
 	ts_t *ts = _ts;
 	const gchar *name = wnck_window_get_name(window);
-	WnckWindow *us;
 	GtkTreeIter i;
 
-	us = get_widget_wnck_win( GTK_WIDGET(ts->mainwin) );
-	if( window == us )
+	/* Compare window title to our own */
+	if( strcmp( gtk_window_get_title( ts->mainwin ), name ) == 0 )
 		/* Don't add ourselves to the list */
 		return;
 
