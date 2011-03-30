@@ -41,6 +41,10 @@ typedef struct {
 	GtkWindow *mainwin;
 	gboolean shown;
 
+	/* File to wait for to exist before accepting input */
+	/* (NULL means none) */
+	const char* enable_fname;
+
 	WnckScreen *screen;
 
 	WnckWindow *selected;
@@ -122,6 +126,13 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 	GdkDisplay *display = gdk_display_get_default();
 	Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
 
+	if( ts->enable_fname != NULL ) {
+		/* We only operate whilst the enable file exists */
+		if( !g_file_test( ts->enable_fname, G_FILE_TEST_EXISTS ) )
+			/* No, it doesn't exist -- do nothing special */
+			return GDK_FILTER_CONTINUE;
+	}
+
 	if( xevent->type == KeyPress || xevent->type == KeyRelease ) {
 		XKeyEvent* xkey = &(xevent->xkey);
 		KeySym sym;
@@ -175,8 +186,14 @@ int main( int argc, char **argv )
 	ts_t ts;
 	ts.selected = NULL;
 	ts.shown = FALSE;
+	ts.enable_fname = NULL;
 
 	gtk_init( &argc, &argv );
+
+	if( argc == 2 ) {
+		ts.enable_fname = argv[1];
+	}
+
 	build_interface(&ts);
 	init_wnck(&ts);
 	register_alt_tab(&ts);
