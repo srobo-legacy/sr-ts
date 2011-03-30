@@ -56,10 +56,6 @@ static void cb_wnck_window_opened( WnckScreen *screen, WnckWindow *window,
 static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
 				   gpointer _ts );
 
-/* Return the WnckWindow associated with the given widget.
-   (It only makes sense really to pass this GtkWindows.) */
-static WnckWindow* get_widget_wnck_win( GtkWidget *widget );
-
 static void build_treeview( ts_t *ts, GtkBuilder *builder )
 {
 	window_list_t *wl = &ts->winlist;
@@ -134,8 +130,6 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 		sym = XKeycodeToKeysym( xdisplay, xkey->keycode, 0 );
 
 		if( sym == XK_Tab && xevent->type == KeyRelease ) {
-			WnckWindow *win;
-
 			if( ts->shown ) {
 				/* Switch to the selected window */
 				if( ts->selected != NULL ) {
@@ -298,11 +292,4 @@ G_MODULE_EXPORT void cb_winlist_row_activated( GtkTreeView *treeview,
 
 	/* TODO: Send a sane time through */
 	wnck_window_activate(win, 0);
-}
-
-static WnckWindow* get_widget_wnck_win( GtkWidget *widget )
-{
-	GdkWindow* gdw = gtk_widget_get_window( widget );
-
-	return wnck_window_get( GDK_WINDOW_XID(gdw) );
 }
