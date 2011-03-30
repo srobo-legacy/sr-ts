@@ -38,6 +38,7 @@ typedef struct {
 	window_list_t winlist;
 
 	GtkWindow *mainwin;
+	gboolean shown;
 
 	WnckScreen *screen;
 
@@ -99,8 +100,6 @@ static void build_interface( ts_t *ts )
 
 	gtk_builder_connect_signals( builder, ts );
 	g_object_unref(builder);
-
-	gtk_widget_show( GTK_WIDGET(ts->mainwin) );
 }
 #undef get
 
@@ -136,17 +135,18 @@ static GdkFilterReturn cb_window_filter( GdkXEvent *_xevent,
 		if( sym == XK_Tab && xevent->type == KeyRelease ) {
 			WnckWindow *win;
 
-			win = get_widget_wnck_win( GTK_WIDGET(ts->mainwin) );
-			if( win == NULL )
-				g_error( "Hmm.  We appear to have no window." );
-
-			if( wnck_window_is_active(win) ) {
+			if( ts->shown ) {
 				/* Switch to the selected window */
-				if( ts->selected != NULL )
+				if( ts->selected != NULL ) {
+					gtk_widget_hide( GTK_WIDGET(ts->mainwin) );
 					wnck_window_activate(ts->selected, 0);
-			} else
+					ts->shown = FALSE;
+				}
+			} else {
 				/* Raise the switcher */
-				wnck_window_activate(win, 0);
+				gtk_widget_show( GTK_WIDGET(ts->mainwin) );
+				ts->shown = TRUE;
+			}
 		}
 	}
 
@@ -179,6 +179,7 @@ int main( int argc, char **argv )
 {
 	ts_t ts;
 	ts.selected = NULL;
+	ts.shown = FALSE;
 
 	gtk_init( &argc, &argv );
 	build_interface(&ts);
@@ -274,10 +275,8 @@ static void cb_wnck_window_closed( WnckScreen *screen, WnckWindow *window,
 	ts_t *ts = _ts;
 	GtkTreeIter i;
 
-	if( ! find_list_entry( ts, window, &i ) ) {
-		g_warning( "Entry for closed window not found" );
+	if( ! find_list_entry( ts, window, &i ) )
 		return;
-	}
 
 	gtk_list_store_remove( ts->winlist.store, &i );
 }
