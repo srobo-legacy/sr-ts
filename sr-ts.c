@@ -16,6 +16,7 @@
 #include <gtk/gtk.h>
 #define WNCK_I_KNOW_THIS_IS_UNSTABLE
 #include <libwnck/libwnck.h>
+#include "sr-ts-glade.h"
 #include <stdint.h>
 #include <string.h>
 #include <X11/keysym.h>
@@ -94,7 +95,8 @@ static void build_interface( ts_t *ts )
 {
 	GtkBuilder *builder;
 	builder = gtk_builder_new();
-	g_assert( gtk_builder_add_from_file( builder, "sr-ts.glade", NULL ) );
+	g_assert( gtk_builder_add_from_string( builder,
+					       sr_ts_glade, -1, NULL ) );
 	build_treeview( ts, builder );
 
 	get( GTK_WINDOW, mainwin );
